@@ -4,6 +4,18 @@ require File.expand_path '../compiler/generic_compiler', __FILE__
 require File.expand_path '../compiler/gcc', __FILE__
 require File.expand_path '../compiler/clang', __FILE__
 
+# Dirty patch but enought for what Open3.capture3 is used to compile libv8
+unless Open3.respond_to?(:capture3)
+  module Open3
+
+    def capture3(cmd)
+      stdout = `#{cmd}`
+      [ stdout, '', $? ]
+    end
+
+  end
+end
+
 module Libv8
   module Compiler
     KNOWN_COMPILERS = [
@@ -24,13 +36,13 @@ module Libv8
 
     def find(name)
       return nil if name.empty?
-      path, _, status = capture3 "which #{name}"
+      path, _, status = Open3.capture3 "which #{name}"
       path.to_s.chomp!
       determine_type(path).new(path) if status.success?
     end
 
     def determine_type(compiler_path)
-      compiler_version = capture3("#{compiler_path} -v")[0..1].join
+      compiler_version = Open3.capture3("#{compiler_path} -v")[0..1].join
 
       case compiler_version
       when /\bclang\b/i then Clang
@@ -38,15 +50,5 @@ module Libv8
       else                   GenericCompiler
       end
     end
-
-    def capture3(cmd)
-      if Open3.respond_to?(:capture3)
-        return Open3.capture3(cmd)
-      end
-      stdout = `#{cmd}`
-      [ stdout, '', $? ]
-    end
-
-
   end
 end
