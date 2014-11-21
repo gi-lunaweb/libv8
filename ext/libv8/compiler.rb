@@ -39,8 +39,6 @@ module Libv8
       end
     end
 
-    private
-
     def capture3(cmd)
       method = Open3.respond_to?(:capture3) ? :capture3 : :popen3
       Open3.send(method, cmd)
