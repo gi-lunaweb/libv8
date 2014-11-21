@@ -8,6 +8,8 @@ require File.expand_path '../compiler/clang', __FILE__
 unless Open3.respond_to?(:capture3)
   module Open3
 
+    module_function
+    
     def capture3(cmd)
       stdout = `#{cmd}`
       [ stdout, '', $? ]
