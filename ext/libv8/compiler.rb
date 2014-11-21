@@ -25,7 +25,7 @@ module Libv8
     def find(name)
       return nil if name.empty?
       path, _, status = capture3 "which #{name}"
-      path.chomp!
+      path.to_s.chomp!
       determine_type(path).new(path) if status.success?
     end
 
@@ -40,8 +40,11 @@ module Libv8
     end
 
     def capture3(cmd)
-      method = Open3.respond_to?(:capture3) ? :capture3 : :popen3
-      Open3.send(method, cmd)
+      if Open3.respond_to?(:capture3)
+        return Open3.capture3(cmd)
+      end
+      stdout = `#{cmd}`
+      [ stdout, '', $? ]
     end
 
 
